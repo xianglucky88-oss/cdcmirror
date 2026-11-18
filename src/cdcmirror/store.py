@@ -1,4 +1,4 @@
-"""单一职责：本地 sqlite3 持久化，提供幂等 upsert / 计数 / 全量读取。"""
+"""单一职责：本地 sqlite3 持久化，提供幂等 upsert / 删除 / 计数 / 全量读取。"""
 import json, sqlite3
 from .config import DB_PATH
 
@@ -11,6 +11,9 @@ def upsert(con, record):
     con.execute("INSERT INTO records(key,data) VALUES(?,?) "
                 "ON CONFLICT(key) DO UPDATE SET data=excluded.data",
                 (record.key, json.dumps(record.data, ensure_ascii=False)))
+
+def delete(con, key):
+    con.execute("DELETE FROM records WHERE key=?", (key,))
 
 def commit(con): con.commit()
 
