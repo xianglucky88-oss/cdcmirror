@@ -1,0 +1,27 @@
+{
+  "case": "missing_delete",
+  "comment": "删除事件丢失：u1 的 delete(seq3) 在边界内但未生效，目标仍存该行；seq5 的 u4 越过边界(检查点=4)，属于尚未消费的尾部(pending)，不是丢失。",
+  "checkpoints": {"s1": 4},
+  "read_batches": [
+    {
+      "batch_id": "b1", "shard": "s1",
+      "events": [
+        {"seq": 1, "tx": "t1", "table": "users", "pk": "u1", "op": "insert", "payload": {"name": "Ann"}},
+        {"seq": 2, "tx": "t1", "table": "users", "pk": "u2", "op": "insert", "payload": {"name": "Bob"}}
+      ]
+    },
+    {
+      "batch_id": "b2", "shard": "s1",
+      "events": [
+        {"seq": 3, "tx": "t2", "table": "users", "pk": "u1", "op": "delete"},
+        {"seq": 4, "tx": "t2", "table": "users", "pk": "u3", "op": "insert", "payload": {"name": "Cid"}},
+        {"seq": 5, "tx": "t3", "table": "users", "pk": "u4", "op": "insert", "payload": {"name": "Dee"}}
+      ]
+    }
+  ],
+  "target_rows": [
+    {"shard": "s1", "table": "users", "pk": "u1", "payload": {"name": "Ann"}, "source_seq": 1},
+    {"shard": "s1", "table": "users", "pk": "u2", "payload": {"name": "Bob"}, "source_seq": 2},
+    {"shard": "s1", "table": "users", "pk": "u3", "payload": {"name": "Cid"}, "source_seq": 4}
+  ]
+}

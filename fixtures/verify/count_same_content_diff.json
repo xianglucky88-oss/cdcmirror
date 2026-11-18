@@ -1,0 +1,28 @@
+{
+  "case": "count_same_content_diff",
+  "comment": "行数相同(4=4)但主键集合与内容不同：a2 内容过期(漏 seq4 更新)、a4 真正丢失、a9 是目标多出的行。行数相同不能说明镜像一致。",
+  "checkpoints": {"s1": 5},
+  "read_batches": [
+    {
+      "batch_id": "b1", "shard": "s1",
+      "events": [
+        {"seq": 1, "tx": "t1", "table": "acct", "pk": "a1", "op": "insert", "payload": {"bal": 100}},
+        {"seq": 2, "tx": "t1", "table": "acct", "pk": "a2", "op": "insert", "payload": {"bal": 200}},
+        {"seq": 3, "tx": "t2", "table": "acct", "pk": "a3", "op": "insert", "payload": {"bal": 300}}
+      ]
+    },
+    {
+      "batch_id": "b2", "shard": "s1",
+      "events": [
+        {"seq": 4, "tx": "t2", "table": "acct", "pk": "a2", "op": "update", "payload": {"bal": 250}},
+        {"seq": 5, "tx": "t3", "table": "acct", "pk": "a4", "op": "insert", "payload": {"bal": 400}}
+      ]
+    }
+  ],
+  "target_rows": [
+    {"shard": "s1", "table": "acct", "pk": "a1", "payload": {"bal": 100}, "source_seq": 1},
+    {"shard": "s1", "table": "acct", "pk": "a2", "payload": {"bal": 200}, "source_seq": 2},
+    {"shard": "s1", "table": "acct", "pk": "a3", "payload": {"bal": 300}, "source_seq": 3},
+    {"shard": "s1", "table": "acct", "pk": "a9", "payload": {"bal": 900}, "source_seq": 5}
+  ]
+}

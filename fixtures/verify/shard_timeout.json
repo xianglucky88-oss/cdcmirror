@@ -1,0 +1,28 @@
+{
+  "case": "shard_timeout",
+  "comment": "部分分片超时：s1 健康且一致，s2 目标读取超时(uncheckable)。部分失败隔离：s1 照常出结果并确认批次；s2 不确认，恢复后可断点续检。",
+  "checkpoints": {"s1": 2, "s2": 2},
+  "read_batches": [
+    {
+      "batch_id": "b1", "shard": "s1",
+      "events": [
+        {"seq": 1, "tx": "t1", "table": "acct", "pk": "a1", "op": "insert", "payload": {"bal": 1}},
+        {"seq": 2, "tx": "t1", "table": "acct", "pk": "a2", "op": "insert", "payload": {"bal": 2}}
+      ]
+    },
+    {
+      "batch_id": "b3", "shard": "s2",
+      "events": [
+        {"seq": 1, "tx": "t9", "table": "acct", "pk": "b1", "op": "insert", "payload": {"bal": 9}},
+        {"seq": 2, "tx": "t9", "table": "acct", "pk": "b2", "op": "insert", "payload": {"bal": 8}}
+      ]
+    }
+  ],
+  "target_rows": [
+    {"shard": "s1", "table": "acct", "pk": "a1", "payload": {"bal": 1}, "source_seq": 1},
+    {"shard": "s1", "table": "acct", "pk": "a2", "payload": {"bal": 2}, "source_seq": 2},
+    {"shard": "s2", "table": "acct", "pk": "b1", "payload": {"bal": 9}, "source_seq": 1},
+    {"shard": "s2", "table": "acct", "pk": "b2", "payload": {"bal": 8}, "source_seq": 2}
+  ],
+  "unavailable_shards": ["s2"]
+}
